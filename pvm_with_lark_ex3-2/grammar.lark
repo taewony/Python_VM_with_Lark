@@ -1,0 +1,52 @@
+start: stmt_list
+
+stmt_list: (stmt)* // 0개 이상의 문장 허용
+
+stmt: assign_stmt
+    | print_stmt
+    | return_stmt
+    | expr_stmt  // 표현식 자체도 문장이 될 수 있도록 (예: 함수 호출만 있는 라인)
+    | if_stmt
+    | while_stmt
+    | func_def
+
+assign_stmt: NAME "=" expr            -> assign_stmt
+expr_stmt: expr                      -> expr_stmt // 예: some_function(a)
+print_stmt: "print" "(" expr ")"      -> print_stmt
+return_stmt: "return" expr            -> return_stmt
+
+// func_def는 sample_code와 일치하도록 콜론 유지
+func_def: "def" NAME "(" param_list? ")" ":" stmt_block -> func_def
+param_list: NAME ("," NAME)*
+
+// if 및 while은 콜론 없이 처리
+if_stmt: "if" expr stmt_block ("else" stmt_block)? -> if_stmt // else는 선택 사항, 콜론 없음
+while_stmt: "while" expr stmt_block                  -> while_stmt // 콜론 없음
+
+stmt_block: "{" stmt_list "}" // stmt_list가 (stmt)* 이므로 빈 블록 {}도 처리 가능
+
+// 표현식 규칙 (연산자 우선순위 및 함수 호출 포함)
+?expr: expr "+" term              -> add
+     | expr "-" term              -> sub
+     | term
+
+?term: term "*" factor              -> mul
+     // 여기에 / factor 와 같은 다른 연산자도 추가 가능
+     | factor
+
+?factor: NUMBER                    -> number
+       | NAME                      -> var      // 변수 참조
+       | "(" expr ")"              // 괄호 표현식
+       | call_expr                 // 함수 호출
+
+call_expr: NAME "(" arg_list? ")"    -> func_call
+arg_list: expr ("," expr)*
+
+
+// 터미널 정의 (Lark의 common 터미널 사용)
+%import common.CNAME -> NAME
+%import common.NUMBER
+%import common.WS
+%ignore WS
+// %ignore /\/\/[^\n]*/ // C-style 한 줄 주석 무시 (필요시 추가)
+// %ignore /\/\*(\*(?!\/)|[^*])*\*\// // C-style 여러 줄 주석 무시 (필요시 추가)

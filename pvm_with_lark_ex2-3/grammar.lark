@@ -1,0 +1,32 @@
+start: stmt_list
+
+stmt_list: (stmt)*
+
+stmt: assign_stmt | while_stmt | if_stmt | print_stmt
+
+assign_stmt: NAME "=" expr          -> assign_stmt
+while_stmt: "while" expr stmt_block -> while_stmt
+if_stmt: "if" expr stmt_block "else" stmt_block -> if_stmt
+print_stmt: "print" "(" expr ")"            -> print_stmt
+
+expr: term
+     | expr ADD_OP term   -> binop
+
+term: factor
+     | term MUL_OP factor -> binop
+
+factor: NUMBER           -> number
+       | NAME             -> var
+       | "(" expr ")"
+
+ADD_OP: "+" | "-"
+MUL_OP: "*"
+
+stmt_block: "{" stmt_list "}"
+          | "{" "}"              -> empty_block
+
+%import common.CNAME -> NAME
+%import common.NUMBER
+%import common.WS
+%ignore /\\\n/
+%ignore WS

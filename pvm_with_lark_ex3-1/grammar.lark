@@ -1,0 +1,44 @@
+start: stmt_list
+
+stmt_list: stmt+
+
+stmt: assign_stmt
+    | print_stmt
+    | return_stmt
+    | expr_stmt
+    | if_stmt
+    | while_stmt
+    | func_def
+
+assign_stmt: NAME "=" expr           -> assign_stmt
+expr_stmt: expr                      -> expr_stmt
+print_stmt: "print" "(" expr ")"     -> print_stmt
+return_stmt: "return" expr            -> return_stmt
+
+func_def: "def" NAME "(" param_list? ")" ":" stmt_block -> func_def
+param_list: NAME ("," NAME)*
+
+if_stmt: "if" expr ":" stmt_block ("else" ":" stmt_block)? -> if_stmt
+while_stmt: "while" expr ":" stmt_block                    -> while_stmt
+stmt_block: "{" stmt_list "}"
+
+?expr: expr "+" term                 -> add
+     | expr "-" term                 -> sub
+     | term
+?term: term "*" factor               -> mul
+     | factor
+?factor: NUMBER                      -> number
+       | NAME                        -> var
+       | "(" expr ")"
+       | call_expr
+
+call_expr: NAME "(" arg_list? ")"    -> func_call
+arg_list: expr ("," expr)*
+
+LBRACE: "{"
+RBRACE: "}"
+
+%import common.CNAME -> NAME
+%import common.NUMBER
+%import common.WS
+%ignore WS
