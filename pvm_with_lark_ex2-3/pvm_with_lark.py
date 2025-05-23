@@ -21,6 +21,7 @@ if b {
 } else {
     print(0)
 }
+if a { print(a) }
 """
 
 tree = parser.parse(sample_code)

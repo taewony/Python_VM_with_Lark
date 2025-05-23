@@ -8,8 +8,8 @@ class CodeGenerator:
     def emit(self, instr, arg=None):
         self.code.append((instr, arg) if arg is not None else (instr,))
 
-    def new_label(self):
-        label = f"L{self.label_id}"
+    def new_label(self, base="L"):
+        label = f"{base}{self.label_id}"
         self.label_id += 1
         return label
 
@@ -57,6 +57,23 @@ class CodeGenerator:
                 self.compile_stmt(s)
             self.emit("JUMP", start_label)
             self.set_label(end_label)
+        elif isinstance(stmt, tuple) and stmt[0] == "if":
+            cond = stmt[1]
+            then_block = stmt[2]
+            else_block = stmt[3]
+            else_label = self.new_label("else")
+            end_label = self.new_label("endif")
+
+            self.compile_expr(cond)
+            self.emit("JUMP_IF_FALSE", else_label)
+            for s in then_block:
+                self.compile_stmt(s)
+            self.emit("JUMP", end_label)
+            self.emit("LABEL", else_label)
+            if else_block is not None:
+                for s in else_block:
+                    self.compile_stmt(s)
+            self.emit("LABEL", end_label)
         else:
             raise NotImplementedError(f"Unknown statement: {stmt}")
 

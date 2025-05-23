@@ -44,9 +44,12 @@ class ASTBuilder(Transformer):
     def paren_expr(self, p): return p[0]
     def assign_stmt(self, a): return Assign(a[0].value, a[1])
     def print_stmt(self, p): return Print(p[0])
-    def if_stmt(self, i):
-        if len(i) == 3: return If(i[0], i[1], i[2])
-        else: return If(i[0], i[1])
+    def if_stmt(self, children):
+        cond = children[0]
+        then_block = children[1]
+        # else_block이 있을 수도, 없을 수도 있음
+        else_block = children[2] if len(children) > 2 else None
+        return ("if", cond, then_block, else_block)
     def while_stmt(self, w):
         # print("while_stmt input:", w)
         return While(w[0], w[1])
